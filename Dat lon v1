@@ -1,0 +1,191 @@
+-- bfhub.lua - Demo Hub Blox Fruits
+-- Author: Đạt
+
+-- Load OrionLib UI
+local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Orion/main/source"))()
+
+local Window = OrionLib:MakeWindow({
+    Name = "Blox Fruits Hub | Demo",
+    HidePremium = false,
+    SaveConfig = false,
+    IntroText = "Welcome to BF Hub",
+    ConfigFolder = "BFHubConfig"
+})
+
+---------------------------------------------------------------------
+-- 🌾 Farm Tab
+---------------------------------------------------------------------
+local FarmTab = Window:MakeTab({
+    Name = "Farm",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+FarmTab:AddToggle({
+    Name = "Auto Farm Level (demo)",
+    Default = false,
+    Callback = function(v)
+        print("Auto Farm Level:", v)
+    end
+})
+
+FarmTab:AddToggle({
+    Name = "Auto Farm Boss (demo)",
+    Default = false,
+    Callback = function(v)
+        print("Auto Farm Boss:", v)
+    end
+})
+
+FarmTab:AddToggle({
+    Name = "Auto Farm Mastery (demo)",
+    Default = false,
+    Callback = function(v)
+        print("Auto Farm Mastery:", v)
+    end
+})
+
+---------------------------------------------------------------------
+-- 👤 Player Tab
+---------------------------------------------------------------------
+local PlayerTab = Window:MakeTab({
+    Name = "Player",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+PlayerTab:AddSlider({
+    Name = "WalkSpeed",
+    Min = 16, Max = 200, Default = 16,
+    Increment = 1, ValueName = "Speed",
+    Callback = function(v)
+        if game.Players.LocalPlayer.Character then
+            game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = v
+        end
+    end
+})
+
+PlayerTab:AddSlider({
+    Name = "JumpPower",
+    Min = 50, Max = 300, Default = 50,
+    Increment = 1, ValueName = "Jump",
+    Callback = function(v)
+        if game.Players.LocalPlayer.Character then
+            game.Players.LocalPlayer.Character.Humanoid.JumpPower = v
+        end
+    end
+})
+
+PlayerTab:AddButton({
+    Name = "Enable Fly (demo)",
+    Callback = function()
+        print("Fly mode enabled (demo)")
+    end
+})
+
+---------------------------------------------------------------------
+-- 🌀 Teleport Tab
+---------------------------------------------------------------------
+local TeleTab = Window:MakeTab({
+    Name = "Teleport",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+TeleTab:AddButton({
+    Name = "Teleport to (0, 10, 0)",
+    Callback = function()
+        if game.Players.LocalPlayer.Character then
+            game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(0,10,0)
+        end
+    end
+})
+
+---------------------------------------------------------------------
+-- ⚙️ Misc Tab
+---------------------------------------------------------------------
+local MiscTab = Window:MakeTab({
+    Name = "Misc",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+MiscTab:AddButton({
+    Name = "Anti AFK",
+    Callback = function()
+        local vu = game:GetService("VirtualUser")
+        game.Players.LocalPlayer.Idled:Connect(function()
+            vu:Button2Down(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
+            task.wait(1)
+            vu:Button2Up(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
+        end)
+        print("✅ Anti AFK enabled")
+    end
+})
+
+MiscTab:AddButton({
+    Name = "Reduce Lag",
+    Callback = function()
+        for _, v in pairs(workspace:GetDescendants()) do
+            if v:IsA("Part") or v:IsA("MeshPart") then
+                v.Material = Enum.Material.SmoothPlastic
+            end
+            if v:IsA("Decal") or v:IsA("Texture") then
+                v:Destroy()
+            end
+        end
+        print("✅ Lag reduced")
+    end
+})
+
+---------------------------------------------------------------------
+-- 👁 ESP Tab (Demo)
+---------------------------------------------------------------------
+local ESPTab = Window:MakeTab({
+    Name = "ESP",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+local espEnabled = false
+ESPTab:AddToggle({
+    Name = "Player ESP (demo)",
+    Default = false,
+    Callback = function(v)
+        espEnabled = v
+        if espEnabled then
+            print("ESP Enabled")
+            while espEnabled do
+                task.wait(1)
+                for _, plr in pairs(game.Players:GetPlayers()) do
+                    if plr ~= game.Players.LocalPlayer and plr.Character and plr.Character:FindFirstChild("Head") then
+                        plr.Character.Head.BillboardGui = plr.Character.Head.BillboardGui or Instance.new("BillboardGui", plr.Character.Head)
+                        local gui = plr.Character.Head.BillboardGui
+                        gui.Size = UDim2.new(0,200,0,50)
+                        gui.AlwaysOnTop = true
+                        local text = gui:FindFirstChild("Name") or Instance.new("TextLabel", gui)
+                        text.Name = "Name"
+                        text.Text = plr.Name
+                        text.Size = UDim2.new(1,0,1,0)
+                        text.BackgroundTransparency = 1
+                        text.TextColor3 = Color3.new(1,0,0)
+                    end
+                end
+            end
+        else
+            print("ESP Disabled")
+            for _, plr in pairs(game.Players:GetPlayers()) do
+                if plr.Character and plr.Character:FindFirstChild("Head") then
+                    if plr.Character.Head:FindFirstChild("BillboardGui") then
+                        plr.Character.Head.BillboardGui:Destroy()
+                    end
+                end
+            end
+        end
+    end
+})
+
+---------------------------------------------------------------------
+-- Init UI
+---------------------------------------------------------------------
+OrionLib:Init()
