@@ -1,0 +1,112 @@
+-- Dat Lon v2 Hub | Full RedZ-style
+-- Author: ChatGPT
+-- Acc phụ Roblox VNG safe mode
+
+-- Load UI
+local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Orion/main/source"))()
+local Window = OrionLib:MakeWindow({Name = "Dat Lon v2 Hub", HidePremium = false, SaveConfig = true, IntroText = "Dat Lon v2 Flex Hub"})
+
+-- Variables
+local AutoAttack, AutoLoot, Teleport, SpeedFly, ESP = false, false, false, false, false
+local AttackRange, AttackDamage = 15, 23
+local MinDelay, MaxDelay = 0.3, 0.7
+local FlySpeed, WalkSpeed = 50, 16
+
+-- Helper Functions
+local function GetNearbyNPCs()
+    local npcs = {}
+    for _, v in pairs(workspace.Enemies:GetChildren()) do
+        if v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 and v:FindFirstChild("HumanoidRootPart") then
+            local dist = (v.HumanoidRootPart.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+            if dist <= AttackRange then table.insert(npcs, v) end
+        end
+    end
+    return npcs
+end
+
+local function AttackNPCs()
+    for _, npc in pairs(GetNearbyNPCs()) do
+        if npc and npc:FindFirstChild("Humanoid") then
+            npc.Humanoid:TakeDamage(AttackDamage)
+            wait(math.random(MinDelay*100, MaxDelay*100)/100)
+        end
+    end
+end
+
+local function TeleportToNPC()
+    local npcs = GetNearbyNPCs()
+    if #npcs > 0 then
+        local npc = npcs[1]
+        local hrp = npc:FindFirstChild("HumanoidRootPart")
+        if hrp then
+            local offset = Vector3.new(math.random(-3,3),0,math.random(-3,3))
+            game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = hrp.CFrame + offset
+        end
+    end
+end
+
+local function LootItems()
+    for _, item in pairs(workspace:GetChildren()) do
+        if item:IsA("Tool") or item.Name:match("Drop") then
+            local dist = (item.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+            if dist <= 10 then
+                pcall(function() item.CFrame = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame end)
+            end
+        end
+    end
+end
+
+local function EnableESP()
+    for _, npc in pairs(workspace.Enemies:GetChildren()) do
+        if npc:FindFirstChild("HumanoidRootPart") then
+            local box = Instance.new("BoxHandleAdornment")
+            box.Size = Vector3.new(4,5,4)
+            box.Adornee = npc.HumanoidRootPart
+            box.Transparency = 0.5
+            box.Color3 = Color3.fromRGB(255,0,0)
+            box.AlwaysOnTop = true
+            box.Parent = npc.HumanoidRootPart
+        end
+    end
+end
+
+-- Tabs & UI
+local tabFarm = Window:MakeTab({Name = "Farm", Icon = "rbxassetid://4483345998"})
+tabFarm:AddToggle({Name = "Auto Attack", Default = false, Callback = function(val) AutoAttack = val end})
+tabFarm:AddToggle({Name = "Auto Loot", Default = false, Callback = function(val) AutoLoot = val end})
+tabFarm:AddToggle({Name = "Teleport NPC", Default = false, Callback = function(val) Teleport = val end})
+
+local tabPlayer = Window:MakeTab({Name = "Player", Icon = "rbxassetid://4483345998"})
+tabPlayer:AddToggle({Name = "Speed/Fly", Default = false, Callback = function(val) SpeedFly = val
+    if SpeedFly then
+        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = FlySpeed
+    else
+        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = WalkSpeed
+    end
+end})
+tabPlayer:AddToggle({Name = "ESP", Default = false, Callback = function(val) ESP = val end})
+
+local tabSettings = Window:MakeTab({Name = "Settings", Icon = "rbxassetid://4483345998"})
+tabSettings:AddSlider({Name = "Attack Range", Min = 5, Max = 50, Default = 15, Callback = function(val) AttackRange = val end})
+tabSettings:AddSlider({Name = "Attack Damage", Min = 1, Max = 100, Default = 23, Callback = function(val) AttackDamage = val end})
+tabSettings:AddSlider({Name = "Min Delay", Min = 0.1, Max = 1, Default = 0.3, Callback = function(val) MinDelay = val end})
+tabSettings:AddSlider({Name = "Max Delay", Min = 0.2, Max = 1.5, Default = 0.7, Callback = function(val) MaxDelay = val end})
+tabSettings:AddSlider({Name = "Fly Speed", Min = 16, Max = 200, Default = 50, Callback = function(val) FlySpeed = val end})
+
+local tabFlex = Window:MakeTab({Name = "Flex", Icon = "rbxassetid://4483345998"})
+tabFlex:AddLabel("Dat Lon v2 | Full Flex Hub Active!")
+
+OrionLib:Init()
+
+-- Main Loop
+spawn(function()
+    while true do
+        pcall(function()
+            if AutoAttack then AttackNPCs() end
+            if Teleport then TeleportToNPC() end
+            if AutoLoot then LootItems() end
+            if ESP then EnableESP() end
+        end)
+        wait(0.1)
+    end
+end)
